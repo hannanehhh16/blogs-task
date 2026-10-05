@@ -62,3 +62,5 @@ export function useAuthors(userIds: readonly number[]) {
 
   return { usersById, getStatus, retry: load };
 }
+
+export type Authors = ReturnType<typeof useAuthors>;

@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
-import { PostList } from "@/components/post-list";
+import { Suspense } from "react";
 import { PostsHeader } from "@/components/posts-header";
+import {
+  PostsExplorer,
+  PostsExplorerFallback,
+} from "@/components/posts-explorer";
 import { getPosts } from "@/lib/api";
 
 export const metadata: Metadata = {
@@ -14,13 +18,13 @@ export default async function PostsPage() {
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
       <PostsHeader />
 
-      <section aria-labelledby="results-heading" className="mt-10">
-        <h2 id="results-heading" className="sr-only">
-          Results
-        </h2>
-
-        <PostList posts={posts} />
-      </section>
+      <div className="mt-10">
+        {/* useSearchParams opts the explorer out of static prerendering; the
+            fallback keeps every post in the initial HTML. */}
+        <Suspense fallback={<PostsExplorerFallback posts={posts} />}>
+          <PostsExplorer posts={posts} />
+        </Suspense>
+      </div>
     </div>
   );
 }

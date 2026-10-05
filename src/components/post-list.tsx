@@ -1,18 +1,19 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import { useAuthors, type AuthorStatus } from "@/hooks/use-authors";
+import { useRef } from "react";
+import type { AuthorStatus, Authors } from "@/hooks/use-authors";
 import type { Post, User } from "@/types/api";
 
-export function PostList({ posts }: { posts: Post[] }) {
-  const userIds = useMemo(
-    () => [...new Set(posts.map((post) => post.userId))],
-    [posts],
-  );
-  const { usersById, getStatus, retry } = useAuthors(userIds);
-
+// Without `authors` (the server-rendered fallback) every byline shows its placeholder.
+export function PostList({
+  posts,
+  authors,
+}: {
+  posts: Post[];
+  authors?: Authors;
+}) {
   return (
-    <ul className="grid gap-x-10 md:grid-cols-2">
+    <ul className="mt-4 grid gap-x-10 md:grid-cols-2">
       {posts.map((post) => (
         <li key={post.id} className="border-t border-rule py-6">
           <article>
@@ -20,9 +21,9 @@ export function PostList({ posts }: { posts: Post[] }) {
               {post.title}
             </h3>
             <AuthorByline
-              author={usersById[post.userId]}
-              status={getStatus(post.userId)}
-              onRetry={() => retry(post.userId)}
+              author={authors?.usersById[post.userId]}
+              status={authors?.getStatus(post.userId) ?? "loading"}
+              onRetry={() => authors?.retry(post.userId)}
             />
             <p className="mt-2 leading-relaxed text-muted first-letter:uppercase">
               {post.body}
