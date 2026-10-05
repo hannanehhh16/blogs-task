@@ -11,6 +11,7 @@ export function PostFilters({
   query,
   authorId,
   authorIds,
+  isUnknownAuthor,
   usersById,
   showClear,
   onQueryChange,
@@ -21,6 +22,7 @@ export function PostFilters({
   query: string;
   authorId: number | null;
   authorIds: number[];
+  isUnknownAuthor: boolean;
   usersById: AuthorsById;
   showClear: boolean;
   onQueryChange: (query: string) => void;
@@ -29,7 +31,6 @@ export function PostFilters({
 }) {
   const selectRef = useRef<HTMLSelectElement>(null);
   const selectValue = authorId === null ? "" : String(authorId);
-  const isUnknownAuthor = authorId !== null && !authorIds.includes(authorId);
 
   // Runs after commit, so an "Unknown author" option already exists when needed.
   useEffect(() => {
@@ -65,6 +66,14 @@ export function PostFilters({
           type="search"
           defaultValue={query}
           onChange={(event) => onQueryChange(event.target.value)}
+          // Chrome clears type="search" on Escape natively, Firefox doesn't.
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && event.currentTarget.value !== "") {
+              event.preventDefault();
+              event.currentTarget.value = "";
+              onQueryChange("");
+            }
+          }}
           placeholder="Search titles and text"
           autoComplete="off"
           className="h-11 rounded-md border border-rule bg-transparent px-3 placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"

@@ -37,6 +37,10 @@ export function PostsExplorer({ posts }: { posts: Post[] }) {
     [posts],
   );
   const authors = useAuthors(authorIds);
+  const unknownAuthorId =
+    filters.authorId !== null && !authorIds.includes(filters.authorId)
+      ? filters.authorId
+      : null;
 
   function clearFilters() {
     updateUrl({ author: null, q: "" }, "push");
@@ -54,6 +58,7 @@ export function PostsExplorer({ posts }: { posts: Post[] }) {
         query={filters.query}
         authorId={filters.authorId}
         authorIds={authorIds}
+        isUnknownAuthor={unknownAuthorId !== null}
         usersById={authors.usersById}
         showClear={isFiltered}
         onQueryChange={(q) => updateUrl({ q }, "replace")}
@@ -80,10 +85,14 @@ export function PostsExplorer({ posts }: { posts: Post[] }) {
         ) : (
           <div className="mt-6 border-t border-rule py-12">
             <h3 className="font-serif text-xl font-semibold">
-              No posts match these filters
+              {unknownAuthorId !== null
+                ? `No author with ID ${unknownAuthorId}`
+                : "No posts match these filters"}
             </h3>
             <p className="mt-2 text-muted">
-              Try a different search term or author.
+              {unknownAuthorId !== null
+                ? "None of the posts belong to this author. Choose another author or clear the filters."
+                : "Try a different search term or author."}
             </p>
             <button
               type="button"
