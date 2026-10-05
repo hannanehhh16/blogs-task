@@ -1,8 +1,10 @@
-import type { Post } from "@/types/api";
+import type { Post, User } from "@/types/api";
 
-// Overridable so local checks and tests can point the server at a fixture or unreachable host.
-const API_BASE_URL =
-  process.env.API_BASE_URL ?? "https://jsonplaceholder.typicode.com";
+const PUBLIC_API_URL = "https://jsonplaceholder.typicode.com";
+
+// Server-only override so local checks and tests can point the server at a fixture
+// or unreachable host. Not NEXT_PUBLIC_, so browser requests always use PUBLIC_API_URL.
+const SERVER_API_URL = process.env.API_BASE_URL ?? PUBLIC_API_URL;
 
 // JSONPlaceholder is a read-only demo API whose posts effectively never change,
 // so a five-minute ISR window serves cached HTML instantly, keeps request volume
@@ -11,7 +13,7 @@ const API_BASE_URL =
 const POSTS_REVALIDATE_SECONDS = 300;
 
 export async function getPosts(): Promise<Post[]> {
-  const response = await fetch(`${API_BASE_URL}/posts`, {
+  const response = await fetch(`${SERVER_API_URL}/posts`, {
     next: { revalidate: POSTS_REVALIDATE_SECONDS },
   });
 
@@ -19,6 +21,19 @@ export async function getPosts(): Promise<Post[]> {
     throw new Error(
       `Failed to fetch posts: ${response.status} ${response.statusText}`,
     );
+  }
+
+  return response.json();
+}
+
+export async function fetchUser(
+  id: number,
+  signal?: AbortSignal,
+): Promise<User> {
+  const response = await fetch(`${PUBLIC_API_URL}/users/${id}`, { signal });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch user ${id}: ${response.status}`);
   }
 
   return response.json();
