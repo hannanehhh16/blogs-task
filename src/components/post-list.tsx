@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { AuthorSkeleton, POST_GRID } from "@/components/skeletons";
 import type { AuthorStatus, Authors } from "@/hooks/use-authors";
 import type { Post, User } from "@/types/api";
 
@@ -13,11 +14,11 @@ export function PostList({
   authors?: Authors;
 }) {
   return (
-    <ul className="mt-4 grid gap-x-10 md:grid-cols-2">
+    <ul className={POST_GRID}>
       {posts.map((post) => (
-        <li key={post.id} className="border-t border-rule py-6">
-          <article>
-            <h3 className="font-serif text-xl leading-snug font-semibold first-letter:uppercase">
+        <li key={post.id} className="border-t border-rule">
+          <article className="-mx-2 rounded-md px-2 py-6 motion-safe:transition-colors motion-safe:duration-150 sm:py-7 hover:bg-rule/35">
+            <h3 className="font-serif text-xl leading-snug font-semibold text-balance first-letter:uppercase">
               {post.title}
             </h3>
             <AuthorByline
@@ -25,7 +26,7 @@ export function PostList({
               status={authors?.getStatus(post.userId) ?? "loading"}
               onRetry={() => authors?.retry(post.userId)}
             />
-            <p className="mt-2 leading-relaxed text-muted first-letter:uppercase">
+            <p className="mt-2 max-w-prose leading-relaxed text-pretty text-muted first-letter:uppercase">
               {post.body}
             </p>
           </article>
@@ -69,19 +70,14 @@ function AuthorByline({
           <button
             type="button"
             onClick={handleRetry}
-            className="rounded px-1 font-medium underline underline-offset-4 transition-colors hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+            aria-label="Retry loading this author"
+            className="action-quiet h-auto min-h-11 px-1 py-1"
           >
             Retry
           </button>
         </>
       ) : (
-        <>
-          <span className="sr-only">Loading author…</span>
-          <span
-            aria-hidden="true"
-            className="h-3.5 w-28 rounded bg-rule motion-safe:animate-pulse"
-          />
-        </>
+        <AuthorSkeleton />
       )}
     </p>
   );

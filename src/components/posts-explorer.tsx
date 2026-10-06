@@ -4,7 +4,9 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, type ReactNode } from "react";
 import { PostFilters } from "@/components/post-filters";
 import { PostList } from "@/components/post-list";
+import { FilterSkeleton } from "@/components/skeletons";
 import { useAuthors } from "@/hooks/use-authors";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import {
   applyFilterChanges,
   filterPosts,
@@ -42,6 +44,17 @@ export function PostsExplorer({ posts }: { posts: Post[] }) {
       ? filters.authorId
       : null;
 
+  const loadingAuthorCount = authorIds.filter(
+    (id) => authors.getStatus(id) === "loading",
+  ).length;
+  const failedAuthorCount = authorIds.filter(
+    (id) => authors.getStatus(id) === "error",
+  ).length;
+
+  const summary = isFiltered
+    ? `${visiblePosts.length} of ${countLabel(posts.length)}`
+    : countLabel(posts.length);
+
   function clearFilters() {
     updateUrl({ author: null, q: "" }, "push");
     // The clear buttons unmount once filters are gone, so move focus to search.
@@ -50,6 +63,13 @@ export function PostsExplorer({ posts }: { posts: Post[] }) {
       searchRef.current.focus();
     }
   }
+
+  const authorDescribedBy = [
+    filters.invalidAuthor !== null ? "invalid-author-note" : null,
+    unknownAuthorId !== null ? "unknown-author-note" : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <>
@@ -60,6 +80,8 @@ export function PostsExplorer({ posts }: { posts: Post[] }) {
         authorIds={authorIds}
         isUnknownAuthor={unknownAuthorId !== null}
         usersById={authors.usersById}
+        authorsBusy={loadingAuthorCount > 0}
+        describedBy={authorDescribedBy || undefined}
         showClear={isFiltered}
         onQueryChange={(q) => updateUrl({ q }, "replace")}
         onAuthorChange={(author) => updateUrl({ author }, "push")}
@@ -67,41 +89,33 @@ export function PostsExplorer({ posts }: { posts: Post[] }) {
       />
 
       <ResultsSection
-        summary={
-          isFiltered
-            ? `${visiblePosts.length} of ${countLabel(posts.length)}`
-            : countLabel(posts.length)
+        summary={summary}
+        authorAnnouncement={
+          loadingAuthorCount > 0
+            ? "Loading authors"
+            : failedAuthorCount > 0
+              ? `${failedAuthorCount} ${failedAuthorCount === 1 ? "author" : "authors"} could not be loaded. Retry is available on those posts.`
+              : ""
         }
       >
         {filters.invalidAuthor !== null && (
-          <p className="mt-2 text-sm text-muted">
+          <aside
+            id="invalid-author-note"
+            className="mt-3 border-l-2 border-ink/30 pl-3 text-sm leading-relaxed text-muted"
+          >
             “{filters.invalidAuthor}” isn’t a valid author ID, so posts from all
             authors are shown.
-          </p>
+          </aside>
         )}
 
         {visiblePosts.length > 0 ? (
           <PostList posts={visiblePosts} authors={authors} />
         ) : (
-          <div className="mt-6 border-t border-rule py-12">
-            <h3 className="font-serif text-xl font-semibold">
-              {unknownAuthorId !== null
-                ? `No author with ID ${unknownAuthorId}`
-                : "No posts match these filters"}
-            </h3>
-            <p className="mt-2 text-muted">
-              {unknownAuthorId !== null
-                ? "None of the posts belong to this author. Choose another author or clear the filters."
-                : "Try a different search term or author."}
-            </p>
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="mt-4 rounded-md bg-ink px-4 py-2 font-medium text-paper transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-            >
-              Clear filters
-            </button>
-          </div>
+          <EmptyResults
+            unknownAuthorId={unknownAuthorId}
+            query={filters.query}
+            onClear={clearFilters}
+          />
         )}
       </ResultsSection>
     </>
@@ -113,13 +127,7 @@ export function PostsExplorer({ posts }: { posts: Post[] }) {
 export function PostsExplorerFallback({ posts }: { posts: Post[] }) {
   return (
     <>
-      <div
-        aria-hidden="true"
-        className="flex flex-col gap-4 sm:flex-row sm:items-end"
-      >
-        <div className="h-[70px] flex-1" />
-        <div className="h-[70px] sm:w-56" />
-      </div>
+      <FilterSkeleton />
       <ResultsSection summary={countLabel(posts.length)}>
         <PostList posts={posts} />
       </ResultsSection>
@@ -127,20 +135,67 @@ export function PostsExplorerFallback({ posts }: { posts: Post[] }) {
   );
 }
 
+function EmptyResults({
+  unknownAuthorId,
+  query,
+  onClear,
+}: {
+  unknownAuthorId: number | null;
+  query: string;
+  onClear: () => void;
+}) {
+  const heading =
+    unknownAuthorId !== null
+      ? `No author with ID ${unknownAuthorId}`
+      : "No posts match these filters";
+  const body =
+    unknownAuthorId !== null
+      ? "None of the posts belong to this author. Choose another author or clear the filters."
+      : query.trim()
+        ? "Try a different search term or author."
+        : "Try a different author, or clear the filters to see every post.";
+
+  return (
+    <div className="mt-6 border-t border-rule py-12">
+      <h3
+        id={unknownAuthorId !== null ? "unknown-author-note" : undefined}
+        className="font-serif text-xl font-semibold text-balance"
+      >
+        {heading}
+      </h3>
+      <p className="mt-2 max-w-md leading-relaxed text-muted">{body}</p>
+      <button type="button" onClick={onClear} className="action-primary mt-6">
+        Clear filters
+      </button>
+    </div>
+  );
+}
+
 function ResultsSection({
   summary,
+  authorAnnouncement = "",
   children,
 }: {
   summary: string;
+  authorAnnouncement?: string;
   children: ReactNode;
 }) {
+  const announcedSummary = useDebouncedValue(summary, 400);
+  const announcedAuthors = useDebouncedValue(authorAnnouncement, 400);
+
   return (
-    <section aria-labelledby="results-heading" className="mt-8">
+    <section
+      id="post-results"
+      aria-labelledby="results-heading"
+      className="mt-8"
+    >
       <h2 id="results-heading" className="sr-only">
         Results
       </h2>
-      <p role="status" className="text-sm text-muted">
-        {summary}
+      <p className="text-sm text-muted">{summary}</p>
+      <p className="sr-only" aria-live="polite" aria-atomic="true">
+        {announcedSummary}
+        {announcedAuthors ? `. ${announcedAuthors}` : ""}
       </p>
       {children}
     </section>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
+import { FILTER_BAR } from "@/components/skeletons";
 import type { AuthorsById } from "@/types/api";
 
 // Both controls are uncontrolled: Next applies history updates in a transition,
@@ -13,6 +14,8 @@ export function PostFilters({
   authorIds,
   isUnknownAuthor,
   usersById,
+  authorsBusy,
+  describedBy,
   showClear,
   onQueryChange,
   onAuthorChange,
@@ -24,6 +27,8 @@ export function PostFilters({
   authorIds: number[];
   isUnknownAuthor: boolean;
   usersById: AuthorsById;
+  authorsBusy: boolean;
+  describedBy?: string;
   showClear: boolean;
   onQueryChange: (query: string) => void;
   onAuthorChange: (authorId: number | null) => void;
@@ -54,9 +59,9 @@ export function PostFilters({
       role="search"
       aria-label="Filter posts"
       onSubmit={(event) => event.preventDefault()}
-      className="flex flex-col gap-4 sm:flex-row sm:items-end"
+      className={FILTER_BAR}
     >
-      <div className="flex flex-1 flex-col gap-1.5">
+      <div className="flex min-w-0 flex-col gap-1.5">
         <label htmlFor="post-search" className="text-sm font-medium">
           Search posts
         </label>
@@ -76,11 +81,13 @@ export function PostFilters({
           }}
           placeholder="Search titles and text"
           autoComplete="off"
-          className="h-11 rounded-md border border-rule bg-transparent px-3 placeholder:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          enterKeyHint="search"
+          aria-controls="post-results"
+          className="field"
         />
       </div>
 
-      <div className="flex flex-col gap-1.5 sm:w-56">
+      <div className="flex min-w-0 flex-col gap-1.5">
         <label htmlFor="author-filter" className="text-sm font-medium">
           Author
         </label>
@@ -88,12 +95,15 @@ export function PostFilters({
           ref={selectRef}
           id="author-filter"
           defaultValue={selectValue}
+          aria-busy={authorsBusy || undefined}
+          aria-invalid={isUnknownAuthor || undefined}
+          aria-describedby={describedBy}
           onChange={(event) =>
             onAuthorChange(
               event.target.value === "" ? null : Number(event.target.value),
             )
           }
-          className="h-11 rounded-md border border-rule bg-paper px-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="field"
         >
           <option value="">All authors</option>
           {isUnknownAuthor && (
@@ -111,7 +121,7 @@ export function PostFilters({
         <button
           type="button"
           onClick={onClear}
-          className="h-11 rounded-md px-3 font-medium underline underline-offset-4 transition-colors hover:text-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className="action-quiet w-full sm:w-auto sm:justify-self-start lg:mb-0 lg:self-end"
         >
           Clear filters
         </button>

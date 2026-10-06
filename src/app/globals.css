@@ -3,15 +3,16 @@
 :root {
   --paper: #fbfaf7;
   --ink: #1c1a17;
-  --muted: #6b665e;
+  --muted: #4f4a43;
   --rule: #e4e0d8;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --paper: #151412;
     --ink: #ece8e1;
-    --muted: #a39d93;
+    --muted: #b8b2a8;
     --rule: #2d2a26;
   }
 }
@@ -23,4 +24,44 @@
   --color-rule: var(--rule);
   --font-sans: var(--font-geist-sans);
   --font-serif: var(--font-newsreader);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@utility field {
+  @apply h-11 w-full rounded-md border border-rule bg-paper px-3 text-ink;
+  @apply motion-safe:transition-[border-color,background-color,box-shadow] motion-safe:duration-150;
+  transition-timing-function: var(--ease-out);
+  @apply hover:border-ink/35;
+  @apply focus:border-ink focus:outline-solid focus:outline-2 focus:outline-offset-2 focus:outline-ink;
+}
+
+@utility action {
+  @apply inline-flex h-11 min-w-11 items-center justify-center rounded-md px-4 font-medium;
+  @apply motion-safe:transition-[opacity,background-color,color] motion-safe:duration-150;
+  transition-timing-function: var(--ease-out);
+  @apply focus:outline-solid focus:outline-2 focus:outline-offset-2 focus:outline-ink;
+}
+
+@utility action-primary {
+  @apply action bg-ink text-paper hover:opacity-85 active:opacity-75;
+}
+
+@utility action-quiet {
+  @apply action px-3 underline underline-offset-4 hover:text-muted active:opacity-75;
+}
+
+@utility skip-link {
+  @apply sr-only rounded-md bg-ink px-4 py-2 text-paper;
+  @apply focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50;
+  @apply focus:outline-solid focus:outline-2 focus:outline-offset-2 focus:outline-paper;
 }

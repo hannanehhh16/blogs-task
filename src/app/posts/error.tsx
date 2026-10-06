@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { startTransition, useEffect } from "react";
+import { PageShell } from "@/components/page-shell";
 import { PostsHeader } from "@/components/posts-header";
 
 export default function PostsError({
@@ -27,7 +28,7 @@ export default function PostsError({
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+    <PageShell>
       <PostsHeader />
 
       <section
@@ -37,22 +38,18 @@ export default function PostsError({
       >
         <h2
           id="posts-error-heading"
-          className="font-serif text-2xl font-semibold"
+          className="font-serif text-2xl font-semibold text-balance"
         >
           We couldn’t load the posts
         </h2>
-        <p className="mt-2 text-muted">
+        <p className="mt-2 leading-relaxed text-muted">
           The article service didn’t respond as expected. Check your connection
           and try again.
         </p>
-        <button
-          type="button"
-          onClick={handleRetry}
-          className="mt-6 rounded-md bg-ink px-4 py-2 font-medium text-paper transition-opacity hover:opacity-85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
-        >
+        <button type="button" onClick={handleRetry} className="action-primary mt-6">
           Try again
         </button>
       </section>
-    </div>
+    </PageShell>
   );
 }

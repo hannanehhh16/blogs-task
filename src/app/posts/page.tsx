@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { PageShell } from "@/components/page-shell";
 import { PostsHeader } from "@/components/posts-header";
 import {
   PostsExplorer,
@@ -15,7 +16,7 @@ export default async function PostsPage() {
   const posts = await getPosts();
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
+    <PageShell>
       <PostsHeader />
 
       <div className="mt-10">
@@ -25,6 +26,6 @@ export default async function PostsPage() {
           <PostsExplorer posts={posts} />
         </Suspense>
       </div>
-    </div>
+    </PageShell>
   );
 }

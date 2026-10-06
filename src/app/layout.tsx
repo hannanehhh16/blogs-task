@@ -27,15 +27,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${sans.variable} ${serif.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-paper font-sans text-ink">
-        <a
-          href="#main-content"
-          className="sr-only rounded-md bg-ink px-4 py-2 text-paper focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50"
-        >
+        <a href="#main-content" className="skip-link">
           Skip to content
         </a>
 
         <header className="border-b border-rule">
-          <div className="mx-auto flex max-w-5xl items-baseline justify-between px-4 py-5 sm:px-6">
+          <div className="mx-auto flex max-w-5xl items-baseline justify-between px-4 py-5 sm:px-6 lg:px-8">
             <p className="font-serif text-xl font-semibold tracking-tight">
               Placeholder Journal
             </p>
@@ -47,11 +44,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </main>
 
         <footer className="border-t border-rule">
-          <p className="mx-auto max-w-5xl px-4 py-6 text-sm text-muted sm:px-6">
+          <p className="mx-auto max-w-5xl px-4 py-6 text-sm text-muted sm:px-6 lg:px-8">
             Content from{" "}
             <a
               href="https://jsonplaceholder.typicode.com"
-              className="underline underline-offset-4 hover:text-ink"
+              className="underline underline-offset-4 motion-safe:transition-colors motion-safe:duration-150 hover:text-ink focus:outline-solid focus:outline-2 focus:outline-offset-2 focus:outline-ink"
             >
               JSONPlaceholder
             </a>
