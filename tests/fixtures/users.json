@@ -1,0 +1,18 @@
+{
+  "1": {
+    "id": 1,
+    "name": "Ada Fixture",
+    "username": "ada",
+    "email": "ada@example.test",
+    "website": "ada.example.test",
+    "company": { "name": "Fixture Labs" }
+  },
+  "2": {
+    "id": 2,
+    "name": "Ben Fixture",
+    "username": "ben",
+    "email": "ben@example.test",
+    "website": "ben.example.test",
+    "company": { "name": "Fixture Labs" }
+  }
+}
